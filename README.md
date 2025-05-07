@@ -1,1 +1,1 @@
-# Vietnamese-Musical-Instruments-Classification
+# VN-Instruments-Classifier
