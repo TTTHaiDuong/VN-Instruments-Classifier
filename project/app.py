@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import os
 from datetime import datetime
 import pandas as pd
@@ -6,7 +7,6 @@ from helper import get_base64, set_background, title_style, result_style, create
 import random
 
 # ----------------- Thiết lập cấu hình -----------------
-# Thư mục tài nguyên
 IMAGE_DIR = "project/images"
 BACKGROUND_IMG = os.path.join(IMAGE_DIR, "main.jpg")
 EXCEL_LOG = "project/user_input.xlsx"
@@ -15,41 +15,11 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Dữ liệu nhạc cụ (hiển thị và phân loại)
 instrument_images = {
-    "Đàn bầu": "catru.jpg",
-    "Đàn tranh": "chauvan.jpg",
-    "Đàn nhị": "cheo.jpg",
-    "Sáo": "hatxam.jpg"
+    "Đàn bầu": "danbau.jpg",
+    "Đàn tranh": "dantranh.png",
+    "Đàn nhị": "dan nhi.jpg",
+    "Sáo": "sao.jpg"
 }
-st.markdown("""
-    <style>
-        .instrument-container {
-            display: flex;
-            align-items: center;
-            flex-basis : auto;
-            justify-content : center;
-        }
-        .instrument {
-            text-align: center;
-            margin: 0 20px;
-        }
-        .instrument img {
-            border-radius: 12px;
-            box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
-            width: 100px;
-            height: auto;
-            transition: transform 0.3s ease;
-        }
-        .instrument img:hover {
-            transform: scale(1.05);
-        }
-        .instrument-caption {
-            margin-top: 10px;
-            font-weight: bold;
-            font-size: 26px;
-            font-family: 'Segoe UI', sans-serif;
-        }
-    </style>
-""", unsafe_allow_html=True)
 
 # ----------------- Giao diện -----------------
 # Nền
@@ -59,26 +29,82 @@ set_background(BACKGROUND_IMG)
 st.markdown(title_style, unsafe_allow_html=True)
 st.markdown("<div class='title'>Vietnamese Traditional Instrument Classifier</div>", unsafe_allow_html=True)
 
-# Load ảnh nhạc cụ
-images = {
-    "Đàn bầu": "catru.jpg",
-    "Đàn tranh": "chauvan.jpg",
-    "Đàn nhị": "cheo.jpg",
-    "Sáo": "hatxam.jpg"
-}
+# CSS style
+st.markdown("""
+    <style>
+        @media (max-width: 767px){
+        .instrument-container {
+            flex-direction : column;
+        }
+        .instrument {
+        margin-bottom: 20px;
+        }
 
-# Render ảnh
-st.markdown("<div class='instrument-container'>", unsafe_allow_html=True)
-for caption, filename in images.items():
-    image_path = os.path.join(IMAGE_DIR, filename)
-    image_b64 = get_base64(image_path)
-    st.markdown(f"""
-        <div class='instrument'>
-            <img src='data:image/png;base64,{image_b64}' alt='{caption}' />
-            <div class='instrument-caption'>{caption}</div>
-        </div>
-    """, unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
+        .instrument img {
+             width: 100%;
+        }
+        }
+        @media (max-width: 1200px) and (min-width:768px){
+        .instrument-container {
+            display : flex;
+            flex-wrap: wrap;
+        }
+        }
+        .instrument-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flew-wrap : wrap;
+            gap : 20px; 
+        }
+        .instrument {
+            text-align: center;
+            margin: 0 20px;
+        }
+        .instrument img {
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
+            width: 300px;
+            height: 300px;
+            min-width: 250px;
+            transition: transform 0.3s ease;
+        }
+        .instrument img:hover {
+            transform: scale(1.05);
+        }
+        .instrument-caption {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+
+html_images = f"""
+<div class='instrument-container'>
+    <div class='instrument'>
+        <img src='data:image/png;base64,{get_base64(os.path.join(IMAGE_DIR, "danbau.jpg"))}' alt='Đàn bầu' />
+        <div class='instrument-caption'>Đàn bầu</div>
+    </div>
+    <div class='instrument'>
+        <img src='data:image/png;base64,{get_base64(os.path.join(IMAGE_DIR, "dantranh.png"))}' alt='Đàn tranh' />
+        <div class='instrument-caption'>Đàn tranh</div>
+    </div>
+    <div class='instrument'>
+        <img src='data:image/png;base64,{get_base64(os.path.join(IMAGE_DIR, "dan nhi.jpg"))}' alt='Đàn nhị' />
+        <div class='instrument-caption'>Đàn nhị</div>
+    </div>
+    <div class='instrument'>
+        <img src='data:image/png;base64,{get_base64(os.path.join(IMAGE_DIR, "sao.jpg"))}' alt='Sáo' />
+        <div class='instrument-caption'>Sáo</div>
+    </div>
+</div>
+"""
+
+st.markdown(html_images, unsafe_allow_html=True)
+
 
 # ----------------- Upload và phân loại -----------------
 st.markdown("### 🎵 Upload file âm thanh (.mp3 hoặc .wav)")
@@ -88,7 +114,6 @@ uploaded_file = st.file_uploader("Chọn tệp", type=["mp3", "wav"])
 def classify_instrument(audio_path):
     return random.choice(list(instrument_images.keys()))
 
-# Nếu có file upload
 if uploaded_file:
     st.audio(uploaded_file, format='audio/mp3')
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -98,13 +123,12 @@ if uploaded_file:
         f.write(uploaded_file.getbuffer())
     st.success("📁 File đã được tải lên!")
 
-    # Phân loại
     if st.button("🎯 Phân loại"):
         result = classify_instrument(save_path)
         st.markdown(result_style, unsafe_allow_html=True)
         st.markdown(f"<div class='result'>🎼 Kết quả: {result}</div>", unsafe_allow_html=True)
 
-        # Tạo file nếu chưa có
+        # Tạo file log nếu chưa có
         if not os.path.exists(EXCEL_LOG):
             pd.DataFrame(columns=["Filename", "Predicted Instrument"]).to_excel(EXCEL_LOG, index=False)
 
