@@ -10,6 +10,8 @@ from tensorflow.keras.utils import to_categorical
 from PIL import Image
 from audiomentations import Compose, AddGaussianNoise, TimeStretch, PitchShift
 import matplotlib.pyplot as plt
+from utils import audio_to_mel_spectrogram
+from build.model1 import get_model1
 
 # Hàm tăng cường dữ liệu âm thanh
 augment = Compose([
@@ -124,140 +126,138 @@ def predict_from_mel_image(image_path, model, label_encoder, n_mels=128, fixed_l
 
 
 
-# Tải và tiền xử lý dữ liệu
-data_dir = 'dataset/train'  # Thay bằng đường dẫn thư mục dữ liệu
-X, y = load_data(data_dir, augment_data=True)
+# # # Tải và tiền xử lý dữ liệu
+# data_dir = 'dataset/train'  # Thay bằng đường dẫn thư mục dữ liệu
+# X, y = load_data(data_dir, augment_data=True)
 
 
 
 
 
 # Mã hóa nhãn
-label_encoder = LabelEncoder()
-y_encoded = label_encoder.fit_transform(y)
-y_categorical = to_categorical(y_encoded)
+# label_encoder = LabelEncoder()
+# y_encoded = label_encoder.fit_transform(y)
+# y_categorical = to_categorical(y_encoded)
 
 
 
 
 
-# Chuẩn hóa dữ liệu
-X = X[..., np.newaxis]  # Thêm chiều kênh (128, 128, 1)
-X = (X - np.mean(X)) / np.std(X)
+# # Chuẩn hóa dữ liệu
+# X = X[..., np.newaxis]  # Thêm chiều kênh (128, 128, 1)
+# X = (X - np.mean(X)) / np.std(X)
 
 
 
 
 
 # Chia dữ liệu
-X_train, X_temp, y_train, y_temp = train_test_split(X, y_categorical, test_size=0.3, random_state=42)
-X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.3, random_state=42)
+# X_train, X_temp, y_train, y_temp = train_test_split(X, y_categorical, test_size=0.3, random_state=42)
+# X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.3, random_state=42)
 
 
 
 
 
 # Xây dựng mô hình CNN
-model = models.Sequential([
-    layers.Conv2D(32, (3, 3), padding='same', input_shape=(128, 128, 1)),
-    layers.BatchNormalization(),
-    layers.Activation('relu'),
-    layers.MaxPooling2D((2, 2)),
+# # model = models.Sequential([
+#     layers.Conv2D(32, (3, 3), padding='same', input_shape=(128, 128, 1)),
+#     layers.BatchNormalization(),
+#     layers.Activation('relu'),
+#     layers.MaxPooling2D((2, 2)),
 
-    layers.Conv2D(64, (3, 3), padding='same'),
-    layers.BatchNormalization(),
-    layers.Activation('relu'),
-    layers.MaxPooling2D((2, 2)),
+#     layers.Conv2D(64, (3, 3), padding='same'),
+#     layers.BatchNormalization(),
+#     layers.Activation('relu'),
+#     layers.MaxPooling2D((2, 2)),
 
-    layers.Conv2D(128, (3, 3), padding='same'),
-    layers.BatchNormalization(),
-    layers.Activation('relu'),
-    layers.MaxPooling2D((2, 2)),
+#     layers.Conv2D(128, (3, 3), padding='same'),
+#     layers.BatchNormalization(),
+#     layers.Activation('relu'),
+#     layers.MaxPooling2D((2, 2)),
 
-    layers.Conv2D(256, (3, 3), padding='same'),
-    layers.BatchNormalization(),
-    layers.Activation('relu'),
-    layers.GlobalAveragePooling2D(),
+#     layers.Conv2D(256, (3, 3), padding='same'),
+#     layers.BatchNormalization(),
+#     layers.Activation('relu'),
+#     layers.GlobalAveragePooling2D(),
 
-    layers.Dense(128),
-    layers.BatchNormalization(),
-    layers.Activation('relu'),
-    layers.Dropout(0.5),
+#     layers.Dense(128),
+#     layers.BatchNormalization(),
+#     layers.Activation('relu'),
+#     layers.Dropout(0.5),
 
-    layers.Dense(len(label_encoder.classes_), activation='softmax')
-])
-
-
+#     layers.Dense(len(label_encoder.classes_), activation='softmax')
+# ])
 
 
 
-# Biên dịch mô hình
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-              loss='categorical_crossentropy',
-              metrics=['accuracy'])
 
-# Callbacks
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=1e-6)
-early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+
+# # Biên dịch mô hình
+# model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+#               loss='categorical_crossentropy',
+#               metrics=['accuracy'])
+
+# # Callbacks
+# reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=1e-6)
+# early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 
 
 
 
 
 # Huấn luyện mô hình
-history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_val, y_val),
-                    callbacks=[reduce_lr, early_stopping])
+# history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_val, y_val),
+#                     callbacks=[reduce_lr, early_stopping])
 
 
 
 
 
 # Đánh giá mô hình
-test_loss, test_accuracy = model.evaluate(X_test, y_test)
-print(f"Test accuracy: {test_accuracy:.4f}")
+# test_loss, test_accuracy = model.evaluate(X_test, y_test)
+# print(f"Test accuracy: {test_accuracy:.4f}")
 
 
 
 
 
 # Lưu mô hình
-model.save('music_instrument_classifier.h5')
+# model.save('music_instrument_classifier.h5')
 
 
 
 
 
 # Hàm dự đoán và so sánh nhạc cụ
-def predict_and_compare_instrument(file_path, model, label_encoder, n_mels=128, fixed_length=128):
-    """Dự đoán nhạc cụ từ file âm thanh và hiển thị xác suất cho từng lớp.
+def predict_instrument(model, input_file, class_names, is_audio=True):
+    """
+    Dự đoán loại nhạc cụ từ file âm thanh hoặc Mel-spectrogram.
     
-    Parameters:
-        file_path: Đường dẫn file âm thanh.
+    Args:
         model: Mô hình CNN đã huấn luyện.
-        label_encoder: Bộ mã hóa nhãn.
-        n_mels, fixed_length: Tham số Mel-spectrogram.
+        input_file (str): Đường dẫn đến file .wav/.mp3 hoặc .png.
+        class_names (list): Danh sách tên lớp (ví dụ: ['dantranh', 'guitar']).
+        is_audio (bool): True nếu đầu vào là file âm thanh, False nếu là file .png.
     
     Returns:
-        predicted_instrument: Nhạc cụ dự đoán.
-        probabilities: Xác suất cho từng lớp.
+        str: Tên lớp dự đoán.
     """
-    # Trích xuất Mel-spectrogram
-    mel_spec = extract_mel_spectrogram(file_path, n_mels, fixed_length)
-    mel_spec = mel_spec[..., np.newaxis]
-    mel_spec = (mel_spec - np.mean(mel_spec)) / np.std(mel_spec)
-    mel_spec = np.expand_dims(mel_spec, axis=0)  # Thêm batch dimension
+    # Chuẩn bị dữ liệu
+    if is_audio:
+        mel_spec = audio_to_mel_spectrogram(input_file)
+    else:
+        mel_spec = audio_to_mel_spectrogram(input_file)
+    
+    # Thêm chiều batch
+    mel_spec = np.expand_dims(mel_spec, axis=0)
     
     # Dự đoán
-    predictions = model.predict(mel_spec)[0]
-    predicted_label_idx = np.argmax(predictions)
-    predicted_instrument = label_encoder.inverse_transform([predicted_label_idx])[0]
+    predictions = model.predict(mel_spec)
+    class_idx = np.argmax(predictions, axis=1)[0]
+    predicted_class = class_names[class_idx]
     
-    # Tạo danh sách xác suất
-    probabilities = {label_encoder.inverse_transform([i])[0]: prob for i, prob in enumerate(predictions)}
-    
-    return predicted_instrument, probabilities
-
-
+    return predicted_class, predictions[0]
 
 
 
@@ -278,13 +278,28 @@ def plot_probabilities(probabilities):
 
 # Ví dụ dự đoán và so sánh
 if __name__ == "__main__":
-    sample_file = "C:\\Users\\tranh\\Downloads\\BaChuaThac-ChauVan-ThanhNgoan-CHAUVAN.wav"
-    predicted_instrument, probabilities = predict_and_compare_instrument(sample_file, model, label_encoder)
+    # sample_file = "C:\\Users\\tranh\\Downloads\\BaChuaThac-ChauVan-ThanhNgoan-CHAUVAN.wav"
+    # predicted_instrument, probabilities = predict_and_compare_instrument(sample_file, model, label_encoder)
     
-    print(f"Predicted instrument: {predicted_instrument}")
-    print("Probabilities:")
-    for instrument, prob in probabilities.items():
-        print(f"{instrument}: {prob:.4f}")
+    # print(f"Predicted instrument: {predicted_instrument}")
+    # print("Probabilities:")
+    # for instrument, prob in probabilities.items():
+    #     print(f"{instrument}: {prob:.4f}")
     
-    # Hiển thị biểu đồ xác suất
-    plot_probabilities(probabilities)
+    # # Hiển thị biểu đồ xác suất
+    # plot_probabilities(probabilities)
+
+    model1, _, _ = get_model1(n_class=4)
+    model1.load_weights(r"checkpoint\model1\model1_01_0.6582.weights.h5")
+    model1.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+
+    sample_file = r"C:\Users\tranh\Downloads\Senbonzakura Đàn Tranh (guzheng).mp3"
+    predicted_instrument, probabilities = predict_instrument(model1, sample_file, ["dantranh", "danbau", "dannhi", "sao"], is_audio=True)
+    
+    print(f"Dự đoán nhạc cụ: {predicted_instrument}")
+    print(f"Tỉ lệ: {probabilities}")
+    # for instrument, prob in probabilities.items():
+    #     print(f"{instrument}: {prob:.4f}")

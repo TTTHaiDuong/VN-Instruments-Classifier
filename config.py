@@ -1,5 +1,9 @@
+# Các đường dẫn
 DATASET_PATH = "dataset"
-CHECKPOINT_PATH = "checkpoints"
+CHECKPOINT_PATH = "checkpoint"
+TRAIN_DATA = "dataset/train"
+VAL_DATA = "dataset/val"
+TEST_DATA = "dataset/test"
 
 
 # Danh sách lớp để dự đoán
@@ -7,8 +11,12 @@ class_list = {0: "danbau", 1: "dannhi", 2: "dantranh", 3: "sao"}
 
 
 
-# Tham số xử lý âm thanh
-SR = 22050 # Tần số lấy mẫu khi số hoá tín hiệu analog (sampling rate)
+# Tham số xử lý khi lấy file âm thanh
+SR = 22050       # Tần số lấy mẫu khi số hoá tín hiệu analog (sampling rate)
+DURATION = 5     # Thời gian tối đa của file âm thanh (giây)
+N_MELS = 128     # Số lượng Mel bands
+N_FFT = 2048
+HOP_LENGTH = 512
 
 
 
@@ -21,7 +29,7 @@ ZOOM_RANGE = 0.025        # Độ phóng to / thu nhỏ
 
 
 # Tham số đầu vào của mô hình CNN
-INPUT_SHAPE = (128, 128) # Kích thước Mel-spectrogram (mel bands, khung thời gian) 
+INPUT_SHAPE = (128, 128, 3) # Kích thước Mel-spectrogram (mel bands, khung thời gian) 
 
 def get_num_classes():
     """Nhận số lượng lớp dự đoán."""
