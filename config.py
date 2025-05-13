@@ -4,10 +4,12 @@ CHECKPOINT_PATH = "checkpoint"
 TRAIN_DATA = "dataset/train"
 VAL_DATA = "dataset/val"
 TEST_DATA = "dataset/test"
+BEST_MODEL = "bestmodel"
 
 
 # Danh sách lớp để dự đoán
 class_list = {0: "danbau", 1: "dannhi", 2: "dantranh", 3: "sao"}
+CLASS_NAMES = ["danbau", "dannhi", "dantranh", "sao"]
 
 
 

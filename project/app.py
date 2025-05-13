@@ -1,3 +1,4 @@
+import sys
 import streamlit as st
 import streamlit.components.v1 as components
 import os
@@ -5,6 +6,9 @@ from datetime import datetime
 import pandas as pd
 from helper import get_base64, set_background, title_style, result_style, create_data_input, save_prediction
 import random
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from main import predict
+
 
 # ----------------- Thiết lập cấu hình -----------------
 IMAGE_DIR = "project/images"
@@ -124,20 +128,20 @@ if uploaded_file:
     st.success("📁 File đã được tải lên!")
 
     if st.button("🎯 Phân loại"):
-        result = classify_instrument(save_path)
+        result = predict(save_path)
         st.markdown(result_style, unsafe_allow_html=True)
         st.markdown(f"<div class='result'>🎼 Kết quả: {result}</div>", unsafe_allow_html=True)
 
-        # Tạo file log nếu chưa có
-        if not os.path.exists(EXCEL_LOG):
-            pd.DataFrame(columns=["Filename", "Predicted Instrument"]).to_excel(EXCEL_LOG, index=False)
+        # # Tạo file log nếu chưa có
+        # if not os.path.exists(EXCEL_LOG):
+        #     pd.DataFrame(columns=["Filename", "Predicted Instrument"]).to_excel(EXCEL_LOG, index=False)
 
-        existing_data = pd.read_excel(EXCEL_LOG)
-        new_data = create_data_input([uploaded_file.name], [result], existing_data, existing_data.shape[0])
-        save_prediction(EXCEL_LOG, existing_data, new_data)
+        # existing_data = pd.read_excel(EXCEL_LOG)
+        # new_data = create_data_input([uploaded_file.name], [result], existing_data, existing_data.shape[0])
+        # save_prediction(EXCEL_LOG, existing_data, new_data)
 
-        # Thống kê
-        st.markdown("### 📊 Thống kê kết quả phân loại:")
-        chart_data = pd.read_excel(EXCEL_LOG)
-        stats = chart_data["Predicted Instrument"].value_counts()
-        st.bar_chart(stats)
+        # # Thống kê
+        # st.markdown("### 📊 Thống kê kết quả phân loại:")
+        # chart_data = pd.read_excel(EXCEL_LOG)
+        # stats = chart_data["Predicted Instrument"].value_counts()
+        # st.bar_chart(stats)

@@ -64,6 +64,7 @@ def display_mel_spectrogram(mel_spec_db, sr=22050, hop_length=512):
         sr (int): Tần số lấy mẫu khi số hoá tín hiệu analog (sampling rate).
         hop_length (int): Khoảng cách giữa các khung.
     """
+    # Chuẩn hoá chiều của mel_spec_db
     if len(mel_spec_db.shape) == 3:
         if mel_spec_db.shape[-1] == 1:
             mel_spec_db = mel_spec_db[:, :, 0]  # Loại bỏ kênh đơn thành 2D
@@ -140,6 +141,69 @@ def save_mel_spectrograms(input_dir, output_dir, n_mels=128, hop_length=512, n_f
 
 
 
+def print_prediction_results(predictions, class_names, top_k=4):
+    """
+    In tên nhạc cụ được dự đoán và xác suất từng lớp.
+
+    Parameters:
+        predictions (np.ndarray): Kết quả trả về từ model.predict(), shape (1, num_classes)
+        class_names (list): Danh sách tên các lớp, ví dụ: ['dantranh', 'danbau', 'dannhi', 'sao']
+        top_k (int): Số lớp muốn hiển thị (mặc định: tất cả)
+    """
+    # Lấy vector xác suất đầu ra
+    probs = predictions[0]  # (num_classes,)
+    
+    # Lấy chỉ số lớp có xác suất cao nhất
+    predicted_index = int(np.argmax(probs))
+    predicted_label = class_names[predicted_index]
+    predicted_prob = probs[predicted_index]
+
+    print(f"Nhạc cụ được dự đoán: **{predicted_label}** (xác suất: {predicted_prob:.2%})\n")
+    print("Xác suất từng lớp:")
+
+    # Sắp xếp theo xác suất giảm dần
+    sorted_indices = np.argsort(probs)[::-1]
+
+    for i in sorted_indices[:top_k]:
+        label = class_names[i]
+        prob = probs[i]
+        print(f"  - {label:<10}: {prob:.2%}")
+
+
+
+def plot_prediction_probabilities(predictions, class_names):
+    """
+    Vẽ biểu đồ xác suất dự đoán cho từng lớp.
+
+    Parameters:
+        predictions (np.ndarray): Kết quả từ model.predict(), shape (1, num_classes)
+        class_names (list): Danh sách tên các lớp, ví dụ: ['dantranh', 'danbau', 'dannhi', 'sao']
+    """
+    probs = predictions[0]
+
+    # Sắp xếp theo xác suất giảm dần
+    sorted_indices = np.argsort(probs)[::-1]
+    sorted_labels = [class_names[i] for i in sorted_indices]
+    sorted_probs = probs[sorted_indices]
+
+    # Vẽ biểu đồ
+    plt.figure(figsize=(8, 4))
+    bars = plt.barh(sorted_labels, sorted_probs, color='skyblue')
+    plt.xlabel('Xác suất')
+    plt.title('Biểu đồ xác suất dự đoán nhạc cụ')
+    plt.xlim(0, 1)
+
+    # Hiển thị giá trị phần trăm trên từng cột
+    for bar, prob in zip(bars, sorted_probs):
+        plt.text(prob + 0.01, bar.get_y() + bar.get_height()/2,
+                 f"{prob:.2%}", va='center')
+
+    plt.gca().invert_yaxis()  # Lớp có xác suất cao nhất ở trên
+    plt.tight_layout()
+    plt.show()
+
+
+
 if __name__ == "__main__":
     # Hiển thị mel-spectrogram từ file âm thanh
     # audio_file = #file âm thanh
@@ -149,6 +213,6 @@ if __name__ == "__main__":
 
     # Lưu các mel-spectrogram từ trong thư mục âm thanh
     save_mel_spectrograms(
-        r"C:\Users\tranh\MyProjects\VN-Instruments-Classifier\rawdata\train\dannhi",
-        r"C:\Users\tranh\MyProjects\VN-Instruments-Classifier\dataset\train\daunhi")
+        r"C:\Users\tranh\MyProjects\VN-Instruments-Classifier\rawdata\cut",
+        r"C:\Users\tranh\MyProjects\VN-Instruments-Classifier\dataset\train\danbau")
     
