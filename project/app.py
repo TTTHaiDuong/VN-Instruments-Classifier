@@ -131,17 +131,3 @@ if uploaded_file:
         result = predict(save_path)
         st.markdown(result_style, unsafe_allow_html=True)
         st.markdown(f"<div class='result'>🎼 Kết quả: {result}</div>", unsafe_allow_html=True)
-
-        # # Tạo file log nếu chưa có
-        # if not os.path.exists(EXCEL_LOG):
-        #     pd.DataFrame(columns=["Filename", "Predicted Instrument"]).to_excel(EXCEL_LOG, index=False)
-
-        # existing_data = pd.read_excel(EXCEL_LOG)
-        # new_data = create_data_input([uploaded_file.name], [result], existing_data, existing_data.shape[0])
-        # save_prediction(EXCEL_LOG, existing_data, new_data)
-
-        # # Thống kê
-        # st.markdown("### 📊 Thống kê kết quả phân loại:")
-        # chart_data = pd.read_excel(EXCEL_LOG)
-        # stats = chart_data["Predicted Instrument"].value_counts()
-        # st.bar_chart(stats)

@@ -6,14 +6,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from config import *
+from file_utils import get_unique_filename
+import argparse
 
 
 
-def audio_to_mel_spectrogram(file_path, n_mels=128, hop_length=512, n_fft=2048, fixed_length=128, sr=22050, duration=None, input_shape=(128, 128, 3)):
+def audio_to_mel_spectrogram(
+        file_path, 
+        n_mels=128, 
+        hop_length=512, 
+        n_fft=2048, 
+        fixed_length=128, 
+        sr=22050, 
+        duration=None, 
+        input_shape=(128, 128, 3)):
     """Chuyển file âm thanh thành Mel-spectrogram với kích thước cố định.
 
     Parameters:
-        file_path (string): Đường dẫn đến file âm thanh (WAV, MP3, v.v.).
+        file_path (str): Đường dẫn đến file âm thanh (WAV, MP3, v.v.).
         n_mels (int): Số lượng Mel bands.
         hop_length (int): Khoảng cách giữa các khung.
         n_fft (int): Kích thước FFT.
@@ -87,41 +97,48 @@ def display_mel_spectrogram(mel_spec_db, sr=22050, hop_length=512):
 
 
 
-def save_mel_spectrograms(input_dir, output_dir, n_mels=128, hop_length=512, n_fft=2048, sr=22050, duration=5.0, input_shape=(128, 128, 3)):
-    """Chuyển các file âm thanh trong input_dir thành Mel-spectrogram và lưu dưới dạng .png trong output_dir.
+def save_mel_spectrograms(
+        input_dir, 
+        output_dir, 
+        n_mels=128, 
+        hop_length=512, 
+        n_fft=2048, 
+        sr=22050, 
+        duration=5.0, 
+        input_shape=(128, 128, 3)):
+    """
+    Chuyển các file âm thanh trong input_dir thành Mel-spectrogram và lưu dưới dạng .png trong output_dir mà không ghi đè file cũ.
     
     Parameters:
-        input_dir (str): Đường dẫn đến thư mục chứa file âm thanh.
-        output_dir (str): Đường dẫn đến thư mục lưu file .png.
+        input_dir (str): Thư mục chứa các file âm thanh gốc.
+        output_dir (str): Thư mục lưu các file Mel-spectrogram đã chuyển đổi.
         n_mels (int): Số lượng Mel bands.
         hop_length (int): Khoảng cách giữa các khung.
-        n_fft (int): Kích thước cửa sổ FFT.
-        sr (int): Tần số lấy mẫu.
-        duration (float): Độ dài cố định của đoạn âm thanh (giây).
-        input_shape (tuple): Kích thước đầu ra của Mel-spectrogram.
+        n_fft (int): Kích thước FFT.
+        sr (int): Tần số lấy mẫu khi số hoá tín hiệu analog (sampling rate).
+        duration (float): Thời gian tối đa của file âm thanh (giây).
+        input_shape (tuple): Kích thước đầu vào của mô hình CNN (height, width, channels).
     """
-    # Tạo thư mục đầu ra nếu chưa tồn tại
+
     os.makedirs(output_dir, exist_ok=True)
     
-    # Lấy danh sách các thư mục con (lớp) hoặc coi toàn bộ input_dir là một lớp
+    # Lấy danh sách các lớp (subfolders), nếu không có thì coi input_dir là một lớp duy nhất
     classes = [d for d in os.listdir(input_dir) if os.path.isdir(os.path.join(input_dir, d))]
     if not classes:
-        classes = ['']  # Nếu không có thư mục con, coi input_dir là thư mục chứa file
+        classes = ['']
     
     for class_name in classes:
-        # Đường dẫn thư mục lớp
         class_dir = os.path.join(input_dir, class_name) if class_name else input_dir
         output_class_dir = os.path.join(output_dir, class_name) if class_name else output_dir
         os.makedirs(output_class_dir, exist_ok=True)
         
-        # Duyệt qua các file âm thanh
         for f in os.listdir(class_dir):
             if f.endswith(('.wav', '.mp3')):
                 file_path = os.path.join(class_dir, f)
-                output_path = os.path.join(output_class_dir, f"{Path(f).stem}.png")
-                
+                base_name = Path(f).stem
+                output_path = get_unique_filename(os.path.join(output_class_dir, f"{base_name}.png"))
+
                 try:
-                    # Tạo Mel-spectrogram
                     mel_spec = audio_to_mel_spectrogram(
                         file_path,
                         n_mels=n_mels,
@@ -131,14 +148,13 @@ def save_mel_spectrograms(input_dir, output_dir, n_mels=128, hop_length=512, n_f
                         duration=duration,
                         input_shape=input_shape
                     )
-                    
-                    # Lưu thành file .png
-                    plt.imsave(output_path, mel_spec[:, :, 0], cmap='magma')
-                    print(f"Saved Mel-spectrogram for {file_path} to {output_path}")
-                
-                except Exception as e:
-                    print(f"Error processing {file_path}: {e}")
 
+                    plt.imsave(output_path, mel_spec[:, :, 0], cmap='magma')
+                    print(f"Đã lưu: {output_path}")
+
+                except Exception as e:
+                    print(f"Lỗi khi lưu {file_path}: {e}")
+                    
 
 
 def print_prediction_results(predictions, class_names, top_k=4):
@@ -177,7 +193,7 @@ def plot_prediction_probabilities(predictions, class_names):
 
     Parameters:
         predictions (np.ndarray): Kết quả từ model.predict(), shape (1, num_classes)
-        class_names (list): Danh sách tên các lớp, ví dụ: ['dantranh', 'danbau', 'dannhi', 'sao']
+        class_names (list): Danh sách tên các lớp, ví dụ: ['danbau', 'dannhi', 'dantranh', 'sao']
     """
     probs = predictions[0]
 
@@ -204,15 +220,26 @@ def plot_prediction_probabilities(predictions, class_names):
 
 
 
+def main():
+    parser = argparse.ArgumentParser(description="Chuyển đổi âm thanh thành Mel-spectrogram và lưu dưới dạng hình ảnh.")
+
+    parser.add_argument('--input_dir', type=str, required=True, help='Thư mục chứa các file âm thanh gốc.')
+    parser.add_argument('--output_dir', type=str, required=True, help='Thư mục lưu các file Mel-spectrogram đã chuyển đổi.')
+
+    args = parser.parse_args()
+    save_mel_spectrograms(args.input_dir, args.output_dir)
+
+
+
 if __name__ == "__main__":
     # Hiển thị mel-spectrogram từ file âm thanh
     # audio_file = #file âm thanh
-    # mel_spectrogram = audio_to_mel_spectrogram(audio_file, n_mels=128, hop_length=512, n_fft=2048, fixed_length=128)
+    mel_spectrogram = audio_to_mel_spectrogram(r"rawdata\train\sao\sao001.wav", sr=22050, n_mels=128, hop_length=512, n_fft=2048, fixed_length=128, duration=5.0)
     # print(f"Mel-spectrogram shape: {mel_spectrogram.shape}")
-    # display_mel_spectrogram(mel_spectrogram)
+    display_mel_spectrogram(mel_spectrogram)
 
     # Lưu các mel-spectrogram từ trong thư mục âm thanh
-    save_mel_spectrograms(
-        r"C:\Users\tranh\MyProjects\VN-Instruments-Classifier\rawdata\cut",
-        r"C:\Users\tranh\MyProjects\VN-Instruments-Classifier\dataset\train\danbau")
-    
+    # save_mel_spectrograms(
+    #     r"rawdata\cut",
+    #     r"dataset\val\danbau"
+    # )
